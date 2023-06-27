@@ -1,72 +1,39 @@
-import tkinter as tk
-from tkinter import filedialog
-from tkinter import messagebox
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
+import sys
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
+from PyQt5.QtCore import Qt
+from PyQt5.uic import loadUi
+
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 
-# Fungsi untuk membaca dataset
-def open_dataset():
-    file_path = filedialog.askopenfilename(filetypes=[("Excel Files", "*.xlsx")])
-    if file_path:
-        try:
-            dataset = pd.read_excel(file_path)
-            return dataset
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to open dataset: {e}")
-    return None
+class LinearRegressionApp(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        loadUi('gui_design.ui', self)  # Ubah 'gui_design.ui' dengan nama file desain GUI Anda
 
-# Fungsi untuk memprediksi dan menampilkan hasil
-def predict():
-    dataset = open_dataset()
-    if dataset is not None:
-        try:
-            X = dataset[['Nilai Ulangan Harian', 'Nilai Ujian Tengah Semester', 'Nilai Ujian Akhir Semester', 'Awal Mengerjakan', 'Akhir Mengerjakan', 'Durasi Mengerjakan', 'Konversi (Menit)']]
-            y = dataset['Nilai Akhir']
+        self.openButton.clicked.connect(self.open_dataset)
+        self.predictButton.clicked.connect(self.predict)
+        self.aboutButton.clicked.connect(self.about)
 
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    def open_dataset(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, 'Open Dataset', '', 'Excel Files (*.xlsx)')
+        if file_path:
+            try:
+                dataset = pd.read_excel(file_path)
+                # Lakukan pengolahan data sesuai kebutuhan Anda
+            except Exception as e:
+                QMessageBox.critical(self, 'Error', f'Failed to open dataset: {e}')
 
-            model = LinearRegression()
-            model.fit(X_train, y_train)
-            y_pred = model.predict(X_test)
+    def predict(self):
+        # Lakukan prediksi menggunakan Regresi Linier
+        # Tampilkan hasil prediksi dan plot jika diperlukan
 
-            mse = mean_squared_error(y_test, y_pred)
-            r2 = r2_score(y_test, y_pred)
+    def about(self):
+        QMessageBox.information(self, 'About', 'Linear Regression App\n\nAplikasi untuk melakukan prediksi menggunakan Regresi Linier.')
 
-            messagebox.showinfo("Prediction Result", f"Mean Squared Error: {mse}\nR^2 Score: {r2}")
-
-            # Menampilkan plot nilai aktual vs. prediksi
-            plt.scatter(y_test, y_pred)
-            plt.xlabel("Nilai Aktual")
-            plt.ylabel("Nilai Prediksi")
-            plt.title("Nilai Aktual vs. Prediksi")
-            plt.show()
-
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to predict: {e}")
-
-# Fungsi untuk menampilkan dialog tentang aplikasi
-def about():
-    messagebox.showinfo("About", "Linear Regression App\n\nAplikasi untuk melakukan prediksi menggunakan Regresi Linier.")
-
-# Membuat jendela GUI
-window = tk.Tk()
-window.title("Linear Regression App")
-
-# Membuat tombol untuk membuka dataset
-open_button = tk.Button(window, text="Open Dataset", command=open_dataset)
-open_button.pack(pady=10)
-
-# Membuat tombol untuk memprediksi
-predict_button = tk.Button(window, text="Predict", command=predict)
-predict_button.pack(pady=10)
-
-# Membuat tombol untuk informasi tentang aplikasi
-about_button = tk.Button(window, text="About", command=about)
-about_button.pack(pady=10)
-
-# Menjalankan aplikasi
-window.mainloop()
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = LinearRegressionApp()
+    window.show()
+    sys.exit(app.exec_())
